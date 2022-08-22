@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>CodePen - Animated Generative Art Grid</title>
+  <link rel="stylesheet" href="./style.css">
+
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<shader-art autoplay>
+  <script type="buffer" name="position" data-size="2">
+    [-1, 1, -1,-1, 1,1, 1, 1, -1,-1, 1,-1]
+  </script>
+  <script type="buffer" name="uv" data-size="2">
+    [ 0, 0,  0, 1, 1,0, 1, 0,  0, 1, 1, 1]
+  </script>
+  <script type="vert">
+    precision highp float;
+    attribute vec4 position;
+    attribute vec2 uv;
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = position;
+    }
+  </script>
+  <script type="frag">
+    precision highp float;
+    varying vec2 vUv;
+    uniform vec2 resolution;
+    uniform float time;
+    #define PI 3.141592654
+    void main() {
+      float aR = resolution.x / resolution.y;
+      vec2 p0 = vec2(vUv.x * aR, vUv.y);
+      vec2 p = mod(p0.xy * 10., 1.); 
+      vec2 q = floor(p0.xy  * 10.);
+      vec2 pp = mix(p, vec2(1. - p.x,p.y), .5 + .5 * cos((q.x + q.y * 2.)*PI));
+      vec2 c0 = vec2(.5 + mod(q.y, 2.) * mod(q.x, 2.) * cos((q.x + q.y * 2.)*PI*.25+time) *.5, .5 + sin(time) * .5);
+      float qq = mix((pp.x+pp.y)*.5, 1. - length(pp - c0), .5 + .5*cos((q.x+q.y)*PI));   
+      float x = .5 + .5 * sin(time + (q.x+q.y) * PI * .5);
+      float border = smoothstep(.0, .1, sin(p.x * PI)) * smoothstep(.0, .1, sin(p.y * PI));
+      float s = qq*x;
+      vec3 col = border * s * vec3(mod((1.+q.xy) * vec2(.6,.2), 2.), mod(q.x *2. + q.y * 3., 10.) * .1) * 1.4;
+      gl_FragColor = vec4(col,1.); }
+  </script>
+</shader-art>
+<!-- partial -->
+  <script type="module" src="./script.js"></script>
+
+</body>
+</html>
